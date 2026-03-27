@@ -638,9 +638,13 @@ function evalExpr(expr: string, vars: Record<string, any>): any {
     return vars[arrAccess[1]][evalExpr(arrAccess[2], vars)];
   }
 
-  // arr.length
+  // Array or String .length
   const lenMatch = trimmed.match(/^(\w+)\.length$/);
-  if (lenMatch) return Array.isArray(vars[lenMatch[1]]) ? vars[lenMatch[1]].length : 0;
+  if (lenMatch) {
+    const val = vars[lenMatch[1]];
+    if (val !== undefined && val.length !== undefined) return val.length;
+    return 0;
+  }
 
   // Binary ops (order matters for precedence simulation)
   const binOps = [" + ", " - ", " * ", " / ", " % "];
@@ -668,9 +672,6 @@ function evalExpr(expr: string, vars: Record<string, any>): any {
   if (trimmed === "true") return true;
   if (trimmed === "false") return false;
 
-  // String .length
-  const strLenMatch = trimmed.match(/^(\w+)\.length$/);
-  if (strLenMatch && typeof vars[strLenMatch[1]] === 'string') return vars[strLenMatch[1]].length;
 
   return trimmed;
 }

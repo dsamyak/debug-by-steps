@@ -1,4 +1,7 @@
 import { CodeLine } from "@/lib/puzzles";
+import Prism from "prismjs";
+import "prismjs/themes/prism-tomorrow.css";
+import "prismjs/components/prism-javascript";
 
 interface CodePanelProps {
   lines: CodeLine[];
@@ -19,6 +22,9 @@ const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode
         const isFixedLine = isFixed && idx === bugLine;
         const displayCode = isFixedLine && fixedLineCode ? fixedLineCode : line.code;
         const showExp = showExplanations && isActive && line.explanation;
+
+        // Highlight the code using Prism
+        const highlightedCode = Prism.highlight(displayCode, Prism.languages.javascript, "javascript");
 
         return (
           <div key={idx}>
@@ -46,9 +52,8 @@ const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode
                     ? "text-primary font-medium"
                     : "text-foreground/60"
                 }`}
-              >
-                {displayCode}
-              </span>
+                dangerouslySetInnerHTML={{ __html: highlightedCode }}
+              />
               {isActive && (
                 <span className="text-xs text-primary mr-3 animate-pulse">◀</span>
               )}

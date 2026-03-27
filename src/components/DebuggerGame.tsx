@@ -7,6 +7,8 @@ import WelcomeScreen from "./WelcomeScreen";
 import { Glossary } from "./Glossary";
 import { Button } from "@/components/ui/button";
 import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff, BookOpen, ChevronLeft, Play, Pause } from "lucide-react";
+import confetti from "canvas-confetti";
+import { motion, AnimatePresence } from "framer-motion";
 
 type GamePhase = "welcome" | "stepping" | "quiz" | "identify" | "fix" | "verify" | "complete";
 
@@ -91,32 +93,6 @@ const DebuggerGame = () => {
     setIsAutoPlaying(false);
   }, []);
 
-  // Auto-play effect
-  useEffect(() => {
-    let timer: ReturnType<typeof setTimeout>;
-    if (isAutoPlaying && phase === "stepping" && !isDone) {
-      timer = setTimeout(() => {
-        stepForward();
-      }, 600);
-    }
-    return () => clearTimeout(timer);
-  }, [isAutoPlaying, phase, isDone, stepForward]);
-
-  // Keyboard shortcut
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      if (phase === "welcome") return;
-      if (e.key === " " || e.key === "Enter") {
-        e.preventDefault();
-        if (!isDone && (phase === "stepping" || phase === "verify")) {
-          stepForward();
-        }
-      }
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  });
-
   const stepForward = useCallback(() => {
     if (isDone) return;
     const nextLine = currentLine === -1 ? 0 : currentLine;
@@ -174,11 +150,43 @@ const DebuggerGame = () => {
         setCompletedPuzzles(newCompleted);
         saveCompleted(newCompleted);
         setMessage("🎉 Bug fixed and verified! The code now produces the correct result.");
+        confetti({
+          particleCount: 150,
+          spread: 80,
+          origin: { y: 0.6 },
+          colors: ["#10b981", "#3b82f6", "#f59e0b"]
+        });
       }
     } else {
       setCurrentLine(result.nextLine);
     }
   }, [currentLine, variables, isDone, puzzle, phase, isFixed, fixedCode, completedPuzzles, answeredQuizzes, rightPanelTab]);
+
+  // Auto-play effect
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (isAutoPlaying && phase === "stepping" && !isDone) {
+      timer = setTimeout(() => {
+        stepForward();
+      }, 600);
+    }
+    return () => clearTimeout(timer);
+  }, [isAutoPlaying, phase, isDone, stepForward]);
+
+  // Keyboard shortcut
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (phase === "welcome") return;
+      if (e.key === " " || e.key === "Enter") {
+        e.preventDefault();
+        if (!isDone && (phase === "stepping" || phase === "verify")) {
+          stepForward();
+        }
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  });
 
   const stepBackward = useCallback(() => {
     if (stateHistory.length === 0) return;
@@ -423,12 +431,23 @@ const DebuggerGame = () => {
           </div>
 
           {/* Tab Content */}
-          <div className="flex-1 p-3 overflow-auto">
-            {rightPanelTab === "memory" ? (
-              <MemoryWatch variables={variables} previousVariables={prevVariables} />
-            ) : (
-              <ExecutionLog entries={executionLog} />
-            )}
+          <div className="flex-1 p-3 overflow-y-auto overflow-x-hidden relative">
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={rightPanelTab}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                transition={{ duration: 0.2 }}
+                className="absolute inset-0 p-3 overflow-auto"
+              >
+                {rightPanelTab === "memory" ? (
+                  <MemoryWatch variables={variables} previousVariables={prevVariables} />
+                ) : (
+                  <ExecutionLog entries={executionLog} />
+                )}
+              </motion.div>
+            </AnimatePresence>
           </div>
 
           {/* Condition Evaluator */}
@@ -446,32 +465,41 @@ const DebuggerGame = () => {
           )}
 
           {/* Quiz Options */}
-          {phase === "quiz" && (
-            <div className="border-t border-border p-3 space-y-2 flex-grow bg-primary/5">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-xs text-primary font-mono font-bold uppercase tracking-wide">🧠 Concept Check</span>
-                {wrongAttempts > 0 && (
-                  <span className="text-[10px] text-destructive font-mono">
-                    {wrongAttempts} wrong {wrongAttempts === 1 ? "try" : "tries"}
-                  </span>
-                )}
-              </div>
-              <p className="text-sm font-sans mb-4 leading-relaxed font-semibold text-foreground/90">
-                {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.prompt}
-              </p>
-              <div className="space-y-2">
-                {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.options.map((opt, idx) => (
-                  <button
-                    key={idx}
-                    onClick={() => handleQuizAnswer(opt)}
-                    className="w-full text-left px-4 py-2.5 rounded-md border border-border bg-card text-xs font-mono text-foreground hover:border-primary hover:bg-primary/10 transition-all active:scale-[0.99] shadow-sm"
-                  >
-                    <code>{opt}</code>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
+          <AnimatePresence>
+            {phase === "quiz" && (
+              <motion.div 
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 20 }}
+                className="border-t border-border p-3 space-y-2 flex-grow bg-primary/5"
+              >
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs text-primary font-mono font-bold uppercase tracking-wide">🧠 Concept Check</span>
+                  {wrongAttempts > 0 && (
+                    <span className="text-[10px] text-destructive font-mono">
+                      {wrongAttempts} wrong {wrongAttempts === 1 ? "try" : "tries"}
+                    </span>
+                  )}
+                </div>
+                <p className="text-sm font-sans mb-4 leading-relaxed font-semibold text-foreground/90">
+                  {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.prompt}
+                </p>
+                <div className="space-y-2">
+                  {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.options.map((opt, idx) => (
+                    <motion.button
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      key={idx}
+                      onClick={() => handleQuizAnswer(opt)}
+                      className="w-full text-left px-4 py-2.5 rounded-md border border-border bg-card text-xs font-mono text-foreground hover:border-primary hover:bg-primary/10 transition-colors shadow-sm"
+                    >
+                      <code>{opt}</code>
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
 
           {/* Fix Options */}
           {phase === "fix" && (
