@@ -33,7 +33,10 @@ export type PuzzleCategory =
   | "Initialization"
   | "Array Logic"
   | "Accumulator Patterns"
-  | "Boundary Conditions";
+  | "Boundary Conditions"
+  | "String Manipulation"
+  | "Boolean Logic"
+  | "Nested Loops";
 
 export const categoryDescriptions: Record<PuzzleCategory, string> = {
   "Loop Errors": "Bugs in loop bounds, off-by-one errors, and infinite loops.",
@@ -42,6 +45,9 @@ export const categoryDescriptions: Record<PuzzleCategory, string> = {
   "Array Logic": "Mistakes when reading, writing, or traversing arrays.",
   "Accumulator Patterns": "Errors in summing, counting, or building results.",
   "Boundary Conditions": "Edge cases at the start, end, or limits of data.",
+  "String Manipulation": "Errors in building, slicing, and concatenating text.",
+  "Boolean Logic": "Flawed use of AND, OR, NOT operators.",
+  "Nested Loops": "Mistakes in loops within loops, like 2D grids."
 };
 
 export const categoryIcons: Record<PuzzleCategory, string> = {
@@ -51,6 +57,9 @@ export const categoryIcons: Record<PuzzleCategory, string> = {
   "Array Logic": "📦",
   "Accumulator Patterns": "📊",
   "Boundary Conditions": "🧱",
+  "String Manipulation": "🔤",
+  "Boolean Logic": "🔀",
+  "Nested Loops": "🔁"
 };
 
 export const puzzles: Puzzle[] = [
@@ -351,7 +360,98 @@ export const puzzles: Puzzle[] = [
     concept: "Fence post problem",
     lesson: "The fence post problem: to build a fence with N posts, you need N-1 rails between them. Similarly, joining N items with separators needs N-1 separators. Solutions: (1) Add separator only when it's not the last item, (2) Add the first item outside the loop, then loop from index 1 adding separator+item. This appears everywhere: CSV files, SQL queries, URL parameters.",
   },
+
+  // ── String Manipulation ──
+  {
+    id: "string-length",
+    title: "Password Validator",
+    description: "This code checks if a password is at least 8 characters long and has no spaces. Watch the boolean flags carefully.",
+    category: "String Manipulation",
+    difficulty: "Medium",
+    lines: [
+      { code: "let pwd = \"secret123\";", explanation: "The user's password" },
+      { code: "let isValid = true;", explanation: "Assume valid initially" },
+      { code: "if (pwd.length < 8) {", isBugLine: true, explanation: "🔍 Wait, what if it's exactly 8? Is it valid?" },
+      { code: "  isValid = false;", explanation: "Too short" },
+      { code: "}", explanation: "End if" },
+      { code: "// isValid should be true (length is 9)", explanation: "Expected result: true" }
+    ],
+    bugLineIndex: 2,
+    fixOptions: [
+      { label: "pwd.length > 8", replacement: "if (pwd.length > 8) {", isCorrect: false, explanation: "❌ This flags it as invalid if it's longer than 8, which is the opposite of 'at least 8'." },
+      { label: "pwd.length <= 7", replacement: "if (pwd.length <= 7) {", isCorrect: true, explanation: "✅ Correct! If it's 7 or less, it's too short. This is equivalent to < 8." },
+      { label: "pwd.length == 8", replacement: "if (pwd.length == 8) {", isCorrect: false, explanation: "❌ This only marks it invalid if it's exactly 8." }
+    ],
+    variables: {},
+    hint: "If the requirement is 'at least 8' (≥ 8), the invalid condition is the opposite (< 8 or ≤ 7).",
+    concept: "String Length & Inverse Logic",
+    lesson: "When validating string lengths or ranges, be very careful with inclusive vs exclusive bounds. The opposite of '>= 8' is '< 8' (or '<= 7' for integers). Being off by one here leads to frustrating user experiences where valid passwords are rejected."
+  },
+
+  // ── Boolean Logic ──
+  {
+    id: "boolean-logic-discount",
+    title: "The Discount Dilemma",
+    description: "A customer gets a discount if they are a VIP OR if it's their birthday. But nobody is getting the discount!",
+    category: "Boolean Logic",
+    difficulty: "Easy",
+    lines: [
+      { code: "let isVip = false;", explanation: "Not a VIP" },
+      { code: "let isBirthday = true;", explanation: "But it is their birthday!" },
+      { code: "let getDiscount = false;", explanation: "Flag for discount" },
+      { code: "if (isVip && isBirthday) {", isBugLine: true, explanation: "🔍 && means AND. So they must be BOTH VIP AND Birthday?" },
+      { code: "  getDiscount = true;", explanation: "Grant discount" },
+      { code: "}", explanation: "End if" },
+      { code: "// getDiscount should be true", explanation: "Because it's their birthday, they should get it" }
+    ],
+    bugLineIndex: 3,
+    fixOptions: [
+      { label: "isVip || isBirthday", replacement: "if (isVip || isBirthday) {", isCorrect: true, explanation: "✅ Correct! || means OR. If EITHER condition is true, they get the discount." },
+      { label: "isVip != isBirthday", replacement: "if (isVip != isBirthday) {", isCorrect: false, explanation: "❌ This is XOR (exclusive OR). If they were both VIP and Birthday, they wouldn't get it!" },
+      { label: "!isVip && !isBirthday", replacement: "if (!isVip && !isBirthday) {", isCorrect: false, explanation: "❌ This grants the discount only if they are neither." }
+    ],
+    variables: {},
+    hint: "Read the requirement: 'VIP OR birthday'. Which operator means OR?",
+    concept: "Logical AND vs OR",
+    lesson: "Confusing && (AND) with || (OR) is a classic logic error. AND is restrictive (requires all conditions). OR is permissive (requires any condition). Always test boolean branches with a truth table: what happens with (T,T), (T,F), (F,T), and (F,F)?"
+  },
+
+  // ── Nested Loops ──
+  {
+    id: "nested-loop-grid",
+    title: "The Broken Grid",
+    description: "This code tries to count the total number of cells in a 3x3 grid. But it double-counts something...",
+    category: "Nested Loops",
+    difficulty: "Hard",
+    lines: [
+      { code: "let width = 3;", explanation: "Grid width" },
+      { code: "let height = 3;", explanation: "Grid height" },
+      { code: "let cells = 0;", explanation: "Total cell counter" },
+      { code: "let y = 0;", explanation: "Row counter" },
+      { code: "while (y < height) {", explanation: "For each row" },
+      { code: "  let x = 0;", explanation: "Start column counter at 0" },
+      { code: "  while (x < width) {", explanation: "For each column in row" },
+      { code: "    cells = cells + 1;", explanation: "Count the cell" },
+      { code: "    x = x + 1;", explanation: "Next column" },
+      { code: "  }", explanation: "End inner loop" },
+      { code: "  y = x + 1;", isBugLine: true, explanation: "🔍 y is being updated using x instead of y!" },
+      { code: "}", explanation: "End outer loop" },
+      { code: "// cells should be 9", explanation: "3x3 grid means 9 cells" }
+    ],
+    bugLineIndex: 10,
+    fixOptions: [
+      { label: "y = y + 1;", replacement: "  y = y + 1;", isCorrect: true, explanation: "✅ Correct! The outer loop counter 'y' must be updated independently of 'x'." },
+      { label: "x = y + 1;", replacement: "  x = y + 1;", isCorrect: false, explanation: "❌ Modifying x here doesn't advance the outer loop, leading to an infinite loop." },
+      { label: "y = y + x;", replacement: "  y = y + x;", isCorrect: false, explanation: "❌ This skips rows by adding the entire width to y at once." }
+    ],
+    variables: {},
+    hint: "Which variable controls the outer loop? Look at how it's being updated.",
+    concept: "Nested Loop Counters",
+    lesson: "In nested loops, it's very easy to mix up the inner counter (often 'j' or 'x') with the outer counter (often 'i' or 'y'). Accidentally modifying the inner counter in the outer block, or vice versa, causes skipping, infinite loops, or incorrect logic. Always keep loop variables strictly separated."
+  }
 ];
+
+// Let me just replace this block with the proper puzzles content.
 
 // ── Interpreter ──
 
@@ -532,10 +632,37 @@ function evalExpr(expr: string, vars: Record<string, any>): any {
   // Variable
   if (vars[trimmed] !== undefined) return vars[trimmed];
 
+  // Boolean Literals
+  if (trimmed === "true") return true;
+  if (trimmed === "false") return false;
+
+  // String .length
+  const strLenMatch = trimmed.match(/^(\w+)\.length$/);
+  if (strLenMatch && typeof vars[strLenMatch[1]] === 'string') return vars[strLenMatch[1]].length;
+
   return trimmed;
 }
 
 function evalCondition(cond: string, vars: Record<string, any>): boolean {
+  cond = cond.trim();
+  
+  // Handle ! operator
+  if (cond.startsWith("!")) {
+    return !evalCondition(cond.slice(1), vars);
+  }
+
+  // Handle &&
+  const andIdx = cond.indexOf(" && ");
+  if (andIdx !== -1) {
+    return evalCondition(cond.slice(0, andIdx), vars) && evalCondition(cond.slice(andIdx + 4), vars);
+  }
+
+  // Handle ||
+  const orIdx = cond.indexOf(" || ");
+  if (orIdx !== -1) {
+    return evalCondition(cond.slice(0, orIdx), vars) || evalCondition(cond.slice(orIdx + 4), vars);
+  }
+
   const ops = ["==", "!=", "<=", ">=", "<", ">"];
   for (const op of ops) {
     const idx = cond.indexOf(op);
@@ -552,7 +679,10 @@ function evalCondition(cond: string, vars: Record<string, any>): boolean {
       }
     }
   }
-  return false;
+
+  // Fallback to evaluating as an expression (e.g. `if (isDone)`)
+  const val = evalExpr(cond, vars);
+  return !!val;
 }
 
 function findMatchingBrace(lines: CodeLine[], openIdx: number): number {
