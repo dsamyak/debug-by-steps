@@ -4,6 +4,7 @@ import CodePanel from "./CodePanel";
 import MemoryWatch from "./MemoryWatch";
 import ExecutionLog, { ExecutionLogEntry } from "./ExecutionLog";
 import WelcomeScreen from "./WelcomeScreen";
+import { Glossary } from "./Glossary";
 import { Button } from "@/components/ui/button";
 import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff, BookOpen, ChevronLeft } from "lucide-react";
 
@@ -121,7 +122,7 @@ const DebuggerGame = () => {
         setMessage("✋ Execution complete! Did you notice anything wrong with the result? Click 'Reveal Bug' to see the faulty line.");
       } else if (phase === "verify") {
         setPhase("complete");
-        const newCompleted = new Set(completedPuzzles);
+        const newCompleted = new Set<string>(completedPuzzles);
         newCompleted.add(puzzle.id);
         setCompletedPuzzles(newCompleted);
         saveCompleted(newCompleted);
@@ -189,6 +190,7 @@ const DebuggerGame = () => {
             </h1>
           </div>
           <div className="flex items-center gap-3 text-sm font-mono">
+            <Glossary />
             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
               puzzle.difficulty === "Easy" ? "bg-primary/20 text-primary" :
               puzzle.difficulty === "Medium" ? "bg-accent/20 text-accent" :
