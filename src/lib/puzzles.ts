@@ -2,6 +2,11 @@ export interface CodeLine {
   code: string;
   isBugLine?: boolean;
   explanation?: string; // What this line does in plain English
+  quiz?: {
+    prompt: string;
+    options: string[];
+    answer: string;
+  };
 }
 
 export interface FixOption {
@@ -74,7 +79,16 @@ export const puzzles: Puzzle[] = [
       { code: "let arr = [10, 20, 30, 40, 50];", explanation: "Create an array with 5 numbers (indices 0-4)" },
       { code: "let sum = 0;", explanation: "Initialize our running total to 0" },
       { code: "let i = 0;", explanation: "Start our loop counter at index 0" },
-      { code: "while (i < arr.length - 1) {", isBugLine: true, explanation: "🔍 Loop condition: arr.length is 5, so this checks i < 4" },
+      { 
+        code: "while (i < arr.length - 1) {", 
+        isBugLine: true, 
+        explanation: "🔍 Loop condition: arr.length is 5, so this checks i < 4",
+        quiz: {
+          prompt: "If arr.length is 5, how many times will this loop execute if the condition is i < 4 and i starts at 0?",
+          options: ["5 times", "4 times", "3 times", "Infinite"],
+          answer: "4 times"
+        }
+      },
       { code: "  sum = sum + arr[i];", explanation: "Add the current element to our sum" },
       { code: "  i = i + 1;", explanation: "Move to the next index" },
       { code: "}", explanation: "End of loop — jump back to check condition" },
@@ -102,7 +116,16 @@ export const puzzles: Puzzle[] = [
       { code: "let result = 0;", explanation: "Accumulate our result" },
       { code: "while (n > 0) {", explanation: "Keep going while n is positive" },
       { code: "  result = result + n;", explanation: "Add current n to result" },
-      { code: "  n = n + 1;", isBugLine: true, explanation: "🔍 This changes n — but in which direction?" },
+      { 
+        code: "  n = n + 1;", 
+        isBugLine: true, 
+        explanation: "🔍 This changes n — but in which direction?",
+        quiz: {
+          prompt: "If n starts at 5 and we add 1 each time, what will n be on the next check?",
+          options: ["4", "5", "6", "0"],
+          answer: "6"
+        }
+      },
       { code: "}", explanation: "Loop back to check condition" },
       { code: "// result should be 15", explanation: "Expected: 5+4+3+2+1 = 15" },
     ],
@@ -217,7 +240,16 @@ export const puzzles: Puzzle[] = [
     difficulty: "Medium",
     lines: [
       { code: "let vals = [2, 3, 4];", explanation: "Three numbers to multiply together" },
-      { code: "let product = 0;", isBugLine: true, explanation: "🔍 Product starts at 0 — what happens when you multiply by 0?" },
+      { 
+        code: "let product = 0;", 
+        isBugLine: true, 
+        explanation: "🔍 Product starts at 0 — what happens when you multiply by 0?",
+        quiz: {
+          prompt: "What is the result of 0 * 2?",
+          options: ["2", "0", "Undefined", "NaN"],
+          answer: "0"
+        }
+      },
       { code: "let i = 0;", explanation: "Start index" },
       { code: "while (i < vals.length) {", explanation: "Visit each element" },
       { code: "  product = product * vals[i];", explanation: "Multiply current product by this element" },

@@ -8,7 +8,7 @@ import { Glossary } from "./Glossary";
 import { Button } from "@/components/ui/button";
 import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff, BookOpen, ChevronLeft } from "lucide-react";
 
-type GamePhase = "welcome" | "stepping" | "identify" | "fix" | "verify" | "complete";
+type GamePhase = "welcome" | "stepping" | "quiz" | "identify" | "fix" | "verify" | "complete";
 
 const STORAGE_KEY = "bughunter-completed";
 
@@ -42,6 +42,8 @@ const DebuggerGame = () => {
   const [completedPuzzles, setCompletedPuzzles] = useState<Set<string>>(loadCompleted);
   const [wrongAttempts, setWrongAttempts] = useState(0);
   const [rightPanelTab, setRightPanelTab] = useState<"memory" | "log">("memory");
+  const [answeredQuizzes, setAnsweredQuizzes] = useState<Set<number>>(new Set());
+  const [stateHistory, setStateHistory] = useState<any[]>([]);
 
   const puzzle = puzzles[puzzleIdx];
 
@@ -61,6 +63,8 @@ const DebuggerGame = () => {
     setWrongAttempts(0);
     setPhase("stepping");
     setRightPanelTab("memory");
+    setAnsweredQuizzes(new Set());
+    setStateHistory([]);
   }, []);
 
   const selectPuzzle = useCallback((idx: number) => {
@@ -80,6 +84,8 @@ const DebuggerGame = () => {
     setWrongAttempts(0);
     setPhase("stepping");
     setRightPanelTab("memory");
+    setAnsweredQuizzes(new Set());
+    setStateHistory([]);
   }, []);
 
   // Keyboard shortcut
@@ -100,6 +106,32 @@ const DebuggerGame = () => {
   const stepForward = useCallback(() => {
     if (isDone) return;
     const nextLine = currentLine === -1 ? 0 : currentLine;
+    
+    // Check for inline quiz BEFORE stepping
+    const lineObj = puzzle.lines[nextLine];
+    if (lineObj && lineObj.quiz && !answeredQuizzes.has(nextLine)) {
+      setPhase("quiz");
+      return;
+    }
+
+    // Save state history
+    setStateHistory(prev => [...prev, {
+      currentLine,
+      variables,
+      prevVariables,
+      isDone,
+      showBug,
+      selectedFix,
+      isFixed,
+      fixedCode,
+      stepCount,
+      message,
+      executionLog,
+      phase,
+      answeredQuizzes: new Set(answeredQuizzes),
+      rightPanelTab
+    }]);
+
     const result = executeLine(puzzle, nextLine, variables, isFixed, fixedCode);
 
     setPrevVariables({ ...variables });
@@ -131,7 +163,42 @@ const DebuggerGame = () => {
     } else {
       setCurrentLine(result.nextLine);
     }
-  }, [currentLine, variables, isDone, puzzle, phase, isFixed, fixedCode, completedPuzzles]);
+  }, [currentLine, variables, isDone, puzzle, phase, isFixed, fixedCode, completedPuzzles, answeredQuizzes, rightPanelTab]);
+
+  const stepBackward = useCallback(() => {
+    if (stateHistory.length === 0) return;
+    const prevState = stateHistory[stateHistory.length - 1];
+    setStateHistory(prev => prev.slice(0, -1));
+    
+    setCurrentLine(prevState.currentLine);
+    setVariables(prevState.variables);
+    setPrevVariables(prevState.prevVariables);
+    setIsDone(prevState.isDone);
+    setShowBug(prevState.showBug);
+    setSelectedFix(prevState.selectedFix);
+    setIsFixed(prevState.isFixed);
+    setFixedCode(prevState.fixedCode);
+    setStepCount(prevState.stepCount);
+    setMessage(prevState.message);
+    setExecutionLog(prevState.executionLog);
+    setPhase(prevState.phase);
+    setAnsweredQuizzes(prevState.answeredQuizzes);
+    setRightPanelTab(prevState.rightPanelTab);
+  }, [stateHistory]);
+
+  const handleQuizAnswer = (option: string) => {
+    const nextLine = currentLine === -1 ? 0 : currentLine;
+    const quiz = puzzle.lines[nextLine].quiz!;
+    if (option === quiz.answer) {
+      setAnsweredQuizzes(prev => new Set(prev).add(nextLine));
+      setPhase("stepping");
+      setMessage("✅ Correct prediction! You can now resume stepping forward.");
+      setWrongAttempts(0);
+    } else {
+      setWrongAttempts(w => w + 1);
+      setMessage("❌ Not quite! Review the current variables and try again.");
+    }
+  };
 
   const handleIdentifyBug = () => {
     setShowBug(true);
@@ -252,11 +319,21 @@ const DebuggerGame = () => {
 
           {/* Controls */}
           <div className="border-t border-border p-3 flex items-center gap-2 flex-wrap">
-            {(phase === "stepping" || phase === "verify") && (
+            {(phase === "stepping" || phase === "verify" || phase === "quiz") && (
               <>
                 <Button
+                  onClick={stepBackward}
+                  disabled={stateHistory.length === 0}
+                  variant="outline"
+                  className="gap-1.5 font-mono text-xs"
+                  size="sm"
+                >
+                  <ChevronLeft className="w-3.5 h-3.5" />
+                  Step Back
+                </Button>
+                <Button
                   onClick={stepForward}
-                  disabled={isDone}
+                  disabled={isDone || phase === "quiz"}
                   className="gap-1.5 font-mono text-xs"
                   size="sm"
                 >
@@ -329,7 +406,7 @@ const DebuggerGame = () => {
           </div>
 
           {/* Condition Evaluator */}
-          {executionLog.length > 0 && executionLog[executionLog.length - 1].conditionEval && (
+          {(executionLog.length > 0 && executionLog[executionLog.length - 1].conditionEval && phase !== "quiz") && (
             <div className="border-t border-border px-3 py-2">
               <div className="text-[10px] text-muted-foreground font-mono uppercase mb-1">Condition</div>
               <div className={`font-mono text-sm font-semibold ${
@@ -338,6 +415,34 @@ const DebuggerGame = () => {
                   : "text-destructive"
               }`}>
                 {executionLog[executionLog.length - 1].conditionEval}
+              </div>
+            </div>
+          )}
+
+          {/* Quiz Options */}
+          {phase === "quiz" && (
+            <div className="border-t border-border p-3 space-y-2 flex-grow bg-primary/5">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-xs text-primary font-mono font-bold uppercase tracking-wide">🧠 Concept Check</span>
+                {wrongAttempts > 0 && (
+                  <span className="text-[10px] text-destructive font-mono">
+                    {wrongAttempts} wrong {wrongAttempts === 1 ? "try" : "tries"}
+                  </span>
+                )}
+              </div>
+              <p className="text-sm font-sans mb-4 leading-relaxed font-semibold text-foreground/90">
+                {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.prompt}
+              </p>
+              <div className="space-y-2">
+                {puzzle.lines[currentLine === -1 ? 0 : currentLine].quiz?.options.map((opt, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => handleQuizAnswer(opt)}
+                    className="w-full text-left px-4 py-2.5 rounded-md border border-border bg-card text-xs font-mono text-foreground hover:border-primary hover:bg-primary/10 transition-all active:scale-[0.99] shadow-sm"
+                  >
+                    <code>{opt}</code>
+                  </button>
+                ))}
               </div>
             </div>
           )}
