@@ -12,7 +12,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
   const totalCompleted = completedPuzzles.size;
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
       {/* Hero */}
       <div className="border-b border-border">
         <div className="max-w-4xl mx-auto px-6 py-12 text-center">
@@ -61,56 +61,85 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
         </div>
       </div>
 
-      {/* Categories */}
-      <div className="max-w-4xl mx-auto px-6 py-8 w-full">
-        {categories.map(category => {
-          const categoryPuzzles = puzzles.map((p, i) => ({ puzzle: p, idx: i })).filter(x => x.puzzle.category === category);
-          return (
-            <div key={category} className="mb-8">
-              <div className="flex items-center gap-2 mb-3">
-                <span className="text-xl">{categoryIcons[category]}</span>
-                <h2 className="font-sans font-semibold text-foreground">{category}</h2>
-                <span className="text-xs text-muted-foreground ml-2">
-                  {categoryDescriptions[category]}
-                </span>
-              </div>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {categoryPuzzles.map(({ puzzle, idx }) => {
-                  const isCompleted = completedPuzzles.has(puzzle.id);
-                  return (
-                    <button
-                      key={puzzle.id}
-                      onClick={() => onSelectPuzzle(idx)}
-                      className={`text-left rounded-lg border p-4 transition-all hover:scale-[1.01] ${
-                        isCompleted
-                          ? "border-primary/30 bg-primary/5 hover:border-primary/50"
-                          : "border-border bg-card hover:border-primary/30 hover:bg-card/80"
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="font-sans font-semibold text-foreground text-sm">
-                          {isCompleted && "✅ "}{puzzle.title}
-                        </span>
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-mono font-semibold ${
-                          puzzle.difficulty === "Easy" ? "bg-primary/20 text-primary" :
-                          puzzle.difficulty === "Medium" ? "bg-accent/20 text-accent" :
-                          "bg-destructive/20 text-destructive"
-                        }`}>
-                          {puzzle.difficulty}
-                        </span>
-                      </div>
-                      <p className="text-xs text-muted-foreground line-clamp-2">{puzzle.description}</p>
-                      <div className="mt-2 flex items-center gap-1">
-                        <BookOpen className="w-3 h-3 text-muted-foreground/60" />
-                        <span className="text-[10px] text-muted-foreground/60">{puzzle.concept}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
+      {/* Categories Content */}
+      <div className="max-w-4xl mx-auto px-6 py-8 w-full space-y-12">
+        {[
+          {
+            title: "1. Beginner Basics",
+            description: "Start your journey with fundamental concepts",
+            categories: ["Initialization", "Loop Errors", "Boolean Logic"] as PuzzleCategory[],
+          },
+          {
+            title: "2. Intermediate Concepts",
+            description: "Build your logic testing and data manipulation skills",
+            categories: ["Comparison Bugs", "String Manipulation", "Accumulator Patterns"] as PuzzleCategory[],
+          },
+          {
+            title: "3. Advanced Algorithms",
+            description: "Master complex data structures and boundary testing",
+            categories: ["Array Logic", "Boundary Conditions", "Nested Loops"] as PuzzleCategory[],
+          }
+        ].map(track => (
+          <div key={track.title} className="bg-card/50 backdrop-blur-sm border border-border rounded-xl p-6 shadow-sm">
+            <div className="mb-6">
+              <h2 className="text-2xl font-sans font-bold text-foreground tracking-tight">{track.title}</h2>
+              <p className="text-sm text-muted-foreground mt-1">{track.description}</p>
             </div>
-          );
-        })}
+            
+            <div className="space-y-8">
+              {track.categories.map(category => {
+                const categoryPuzzles = puzzles.map((p, i) => ({ puzzle: p, idx: i })).filter(x => x.puzzle.category === category);
+                if (categoryPuzzles.length === 0) return null; // safety check
+                
+                return (
+                  <div key={category}>
+                    <div className="flex items-center gap-2 mb-3 border-b border-border/50 pb-2">
+                      <span className="text-xl">{categoryIcons[category]}</span>
+                      <h3 className="font-sans font-semibold text-foreground text-lg">{category}</h3>
+                      <span className="text-xs text-muted-foreground ml-2 hidden sm:block">
+                        {categoryDescriptions[category]}
+                      </span>
+                    </div>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      {categoryPuzzles.map(({ puzzle, idx }) => {
+                        const isCompleted = completedPuzzles.has(puzzle.id);
+                        return (
+                          <button
+                            key={puzzle.id}
+                            onClick={() => onSelectPuzzle(idx)}
+                            className={`text-left rounded-lg border p-4 transition-all duration-300 hover:-translate-y-1 hover:shadow-md ${
+                              isCompleted
+                                ? "border-primary/40 bg-primary/10 hover:border-primary/60"
+                                : "border-border/60 bg-card hover:border-primary/40 hover:bg-card/80"
+                            }`}
+                          >
+                            <div className="flex items-center justify-between mb-2">
+                              <span className={`font-sans font-semibold text-sm ${isCompleted ? 'text-primary' : 'text-foreground'}`}>
+                                {isCompleted && "✨ "}{puzzle.title}
+                              </span>
+                              <span className={`px-2 py-0.5 rounded text-[10px] uppercase tracking-wider font-mono font-bold ${
+                                puzzle.difficulty === "Easy" ? "bg-primary/20 text-primary" :
+                                puzzle.difficulty === "Medium" ? "bg-accent/20 text-accent" :
+                                "bg-destructive/20 text-destructive"
+                              }`}>
+                                {puzzle.difficulty}
+                              </span>
+                            </div>
+                            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">{puzzle.description}</p>
+                            <div className="mt-3 flex items-center gap-1.5 opacity-80">
+                              <BookOpen className="w-3.5 h-3.5 text-muted-foreground" />
+                              <span className="text-xs font-mono text-muted-foreground">{puzzle.concept}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

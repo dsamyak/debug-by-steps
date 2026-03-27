@@ -13,7 +13,7 @@ const ExecutionLog = ({ entries }: ExecutionLogProps) => {
   if (entries.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-6 text-center">
-        <p className="text-muted-foreground text-xs font-mono">
+        <p className="text-muted-foreground text-sm font-mono">
           Execution trace will appear here
         </p>
       </div>
@@ -21,7 +21,7 @@ const ExecutionLog = ({ entries }: ExecutionLogProps) => {
   }
 
   return (
-    <div className="space-y-0.5 font-mono text-xs max-h-48 overflow-y-auto">
+    <div className="space-y-0.5 font-mono text-sm max-h-48 overflow-y-auto">
       {entries.map((entry, idx) => (
         <div
           key={idx}

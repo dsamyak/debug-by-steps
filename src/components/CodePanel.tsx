@@ -12,7 +12,7 @@ interface CodePanelProps {
 
 const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode, showExplanations }: CodePanelProps) => {
   return (
-    <div className="font-mono text-sm leading-relaxed select-none">
+    <div className="font-mono text-base sm:text-lg leading-relaxed select-none">
       {lines.map((line, idx) => {
         const isActive = idx === activeLine;
         const isBug = showBug && idx === bugLine && !isFixed;
@@ -33,7 +33,7 @@ const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode
                   : "border-l-[3px] border-transparent hover:bg-secondary/30"
               }`}
             >
-              <span className="w-10 text-right pr-3 text-code-gutter text-xs py-1 shrink-0">
+              <span className="w-10 text-right pr-3 text-code-gutter text-sm py-1 shrink-0">
                 {idx + 1}
               </span>
               <span
@@ -54,7 +54,7 @@ const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode
               )}
             </div>
             {showExp && (
-              <div className="ml-10 px-3 py-1.5 text-xs text-accent bg-accent/5 border-l-[3px] border-accent/30 italic">
+              <div className="ml-10 px-3 py-1.5 text-sm text-accent bg-accent/5 border-l-[3px] border-accent/30 italic">
                 💡 {line.explanation}
               </div>
             )}

@@ -37,10 +37,10 @@ const MemoryWatch = ({ variables, previousVariables }: MemoryWatchProps) => {
     return (
       <div className="flex flex-col items-center justify-center py-8 text-center">
         <div className="text-2xl mb-2">🔍</div>
-        <p className="text-muted-foreground text-sm font-mono">
+        <p className="text-muted-foreground text-base font-mono">
           No variables yet
         </p>
-        <p className="text-muted-foreground/60 text-xs mt-1">
+        <p className="text-muted-foreground/60 text-sm mt-1">
           Click "Step Forward" to begin execution
         </p>
       </div>
@@ -69,20 +69,20 @@ const MemoryWatch = ({ variables, previousVariables }: MemoryWatchProps) => {
         return (
           <div
             key={key}
-            className={`rounded-md border px-3 py-2 font-mono text-sm transition-all duration-300 ${
+            className={`rounded-md border px-3 py-2 font-mono text-base transition-all duration-300 ${
               isChanged
                 ? "border-memory-changed bg-memory-changed/5 scale-[1.01] shadow-sm shadow-memory-changed/10"
                 : "border-border bg-secondary/30"
             }`}
           >
             <div className="flex items-center justify-between">
-              <span className="text-muted-foreground text-xs">{key}</span>
+              <span className="text-muted-foreground text-sm">{key}</span>
               <span className={`font-semibold ${isChanged ? "text-memory-changed" : "text-foreground"}`}>
                 {displayValue}
               </span>
             </div>
             {isChanged && prevDisplay !== null && prevDisplay !== displayValue && (
-              <div className="text-xs text-muted-foreground/60 mt-0.5 text-right">
+              <div className="text-sm text-muted-foreground/60 mt-0.5 text-right">
                 was: <span className="line-through">{prevDisplay}</span>
               </div>
             )}

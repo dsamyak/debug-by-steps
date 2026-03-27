@@ -6,7 +6,7 @@ import ExecutionLog, { ExecutionLogEntry } from "./ExecutionLog";
 import WelcomeScreen from "./WelcomeScreen";
 import { Glossary } from "./Glossary";
 import { Button } from "@/components/ui/button";
-import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff, BookOpen, ChevronLeft } from "lucide-react";
+import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff, BookOpen, ChevronLeft, Play, Pause } from "lucide-react";
 
 type GamePhase = "welcome" | "stepping" | "quiz" | "identify" | "fix" | "verify" | "complete";
 
@@ -44,6 +44,7 @@ const DebuggerGame = () => {
   const [rightPanelTab, setRightPanelTab] = useState<"memory" | "log">("memory");
   const [answeredQuizzes, setAnsweredQuizzes] = useState<Set<number>>(new Set());
   const [stateHistory, setStateHistory] = useState<any[]>([]);
+  const [isAutoPlaying, setIsAutoPlaying] = useState(false);
 
   const puzzle = puzzles[puzzleIdx];
 
@@ -65,6 +66,7 @@ const DebuggerGame = () => {
     setRightPanelTab("memory");
     setAnsweredQuizzes(new Set());
     setStateHistory([]);
+    setIsAutoPlaying(false);
   }, []);
 
   const selectPuzzle = useCallback((idx: number) => {
@@ -86,7 +88,19 @@ const DebuggerGame = () => {
     setRightPanelTab("memory");
     setAnsweredQuizzes(new Set());
     setStateHistory([]);
+    setIsAutoPlaying(false);
   }, []);
+
+  // Auto-play effect
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout>;
+    if (isAutoPlaying && phase === "stepping" && !isDone) {
+      timer = setTimeout(() => {
+        stepForward();
+      }, 600);
+    }
+    return () => clearTimeout(timer);
+  }, [isAutoPlaying, phase, isDone, stepForward]);
 
   // Keyboard shortcut
   useEffect(() => {
@@ -111,6 +125,7 @@ const DebuggerGame = () => {
     const lineObj = puzzle.lines[nextLine];
     if (lineObj && lineObj.quiz && !answeredQuizzes.has(nextLine)) {
       setPhase("quiz");
+      setIsAutoPlaying(false);
       return;
     }
 
@@ -241,7 +256,7 @@ const DebuggerGame = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
       {/* Header */}
       <header className="border-b border-border px-4 py-3">
         <div className="flex items-center justify-between">
@@ -340,7 +355,18 @@ const DebuggerGame = () => {
                   <SkipForward className="w-3.5 h-3.5" />
                   Step Forward
                 </Button>
-                <span className="text-[10px] text-muted-foreground font-mono">
+                <div className="h-4 w-px bg-border mx-1" />
+                <Button
+                  onClick={() => setIsAutoPlaying(p => !p)}
+                  disabled={isDone || phase === "quiz"}
+                  variant={isAutoPlaying ? "secondary" : "default"}
+                  className="gap-1.5 font-mono text-xs transition-all"
+                  size="sm"
+                >
+                  {isAutoPlaying ? <Pause className="w-3.5 h-3.5" /> : <Play className="w-3.5 h-3.5" />}
+                  {isAutoPlaying ? "Pause" : "Auto-Play"}
+                </Button>
+                <span className="text-[10px] text-muted-foreground font-mono ml-2 hidden sm:block">
                   Step {stepCount} · <kbd className="px-1 py-0.5 rounded bg-secondary text-[9px]">Space</kbd>
                 </span>
               </>
