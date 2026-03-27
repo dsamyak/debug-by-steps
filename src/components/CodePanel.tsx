@@ -7,46 +7,57 @@ interface CodePanelProps {
   showBug: boolean;
   isFixed: boolean;
   fixedLineCode?: string;
+  showExplanations: boolean;
 }
 
-const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode }: CodePanelProps) => {
+const CodePanel = ({ lines, activeLine, bugLine, showBug, isFixed, fixedLineCode, showExplanations }: CodePanelProps) => {
   return (
-    <div className="font-mono text-sm leading-relaxed">
+    <div className="font-mono text-sm leading-relaxed select-none">
       {lines.map((line, idx) => {
         const isActive = idx === activeLine;
         const isBug = showBug && idx === bugLine && !isFixed;
         const isFixedLine = isFixed && idx === bugLine;
         const displayCode = isFixedLine && fixedLineCode ? fixedLineCode : line.code;
+        const showExp = showExplanations && isActive && line.explanation;
 
         return (
-          <div
-            key={idx}
-            className={`flex transition-all duration-200 ${
-              isActive
-                ? "bg-code-active/10 border-l-2 border-code-active"
-                : isBug
-                ? "bg-code-error/10 border-l-2 border-code-error"
-                : isFixedLine
-                ? "bg-code-fixed/10 border-l-2 border-code-fixed"
-                : "border-l-2 border-transparent"
-            }`}
-          >
-            <span className="w-10 text-right pr-3 select-none text-code-gutter text-xs leading-relaxed py-0.5">
-              {idx + 1}
-            </span>
-            <span
-              className={`flex-1 py-0.5 px-2 ${
+          <div key={idx}>
+            <div
+              className={`flex items-center transition-all duration-200 group ${
                 isActive
-                  ? "text-foreground font-medium"
+                  ? "bg-primary/10 border-l-[3px] border-primary"
                   : isBug
-                  ? "text-code-error line-through"
+                  ? "bg-destructive/10 border-l-[3px] border-destructive"
                   : isFixedLine
-                  ? "text-code-fixed font-medium"
-                  : "text-foreground/70"
+                  ? "bg-primary/10 border-l-[3px] border-primary"
+                  : "border-l-[3px] border-transparent hover:bg-secondary/30"
               }`}
             >
-              {displayCode}
-            </span>
+              <span className="w-10 text-right pr-3 text-code-gutter text-xs py-1 shrink-0">
+                {idx + 1}
+              </span>
+              <span
+                className={`flex-1 py-1 px-2 whitespace-pre ${
+                  isActive
+                    ? "text-foreground font-medium"
+                    : isBug
+                    ? "text-destructive line-through opacity-80"
+                    : isFixedLine
+                    ? "text-primary font-medium"
+                    : "text-foreground/60"
+                }`}
+              >
+                {displayCode}
+              </span>
+              {isActive && (
+                <span className="text-xs text-primary mr-3 animate-pulse">◀</span>
+              )}
+            </div>
+            {showExp && (
+              <div className="ml-10 px-3 py-1.5 text-xs text-accent bg-accent/5 border-l-[3px] border-accent/30 italic">
+                💡 {line.explanation}
+              </div>
+            )}
           </div>
         );
       })}
