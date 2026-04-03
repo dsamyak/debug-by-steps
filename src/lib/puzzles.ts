@@ -22,6 +22,8 @@ export interface Puzzle {
   description: string;
   category: PuzzleCategory;
   difficulty: "Easy" | "Medium" | "Hard";
+  level: number; // 1-5 progressive level
+  levelOrder: number; // order within the level
   lines: CodeLine[];
   bugLineIndex: number;
   fixOptions: FixOption[];
@@ -30,6 +32,18 @@ export interface Puzzle {
   hint: string;
   concept: string; // CS concept being taught
   lesson: string; // Explanation shown after solving
+}
+
+export interface LevelInfo {
+  level: number;
+  name: string;
+  icon: string;
+  tagline: string;
+  conceptIntro: {
+    title: string;
+    paragraphs: string[];
+    keyPoints: string[];
+  };
 }
 
 export type PuzzleCategory =
@@ -67,6 +81,104 @@ export const categoryIcons: Record<PuzzleCategory, string> = {
   "Nested Loops": "🔁"
 };
 
+export const levels: LevelInfo[] = [
+  {
+    level: 1,
+    name: "Foundations",
+    icon: "🏁",
+    tagline: "Variables, values & getting started",
+    conceptIntro: {
+      title: "What Are Variables?",
+      paragraphs: [
+        "A variable is like a labeled box that holds a value. When you write 'let count = 0', you create a box called 'count' and put the number 0 inside it.",
+        "The INITIAL value matters! If you're counting apples and start at 1 instead of 0, your final count will always be 1 too many. Similarly, multiplication needs to start at 1, not 0, because anything × 0 = 0."
+      ],
+      keyPoints: [
+        "A counter should start at 0 (no items counted yet)",
+        "A sum should start at 0 (nothing added yet)",
+        "A product should start at 1 (the multiplicative identity)",
+        "Always ask: 'What's the correct answer if the loop runs ZERO times?'"
+      ]
+    }
+  },
+  {
+    level: 2,
+    name: "Loops & Flow",
+    icon: "🔄",
+    tagline: "Repeating code & controlling execution",
+    conceptIntro: {
+      title: "How Do Loops Work?",
+      paragraphs: [
+        "A 'while' loop repeats a block of code as long as its condition is true. Think of it like a security guard who checks your ticket each time you try to re-enter: while(hasTicket) { enterPark(); }.",
+        "Two critical things can go wrong: (1) The loop stops too early or too late (off-by-one), or (2) The loop NEVER stops because the variable moves away from the exit condition (infinite loop)."
+      ],
+      keyPoints: [
+        "'i < arr.length' visits indices 0 to length-1 (all elements)",
+        "'i < arr.length - 1' SKIPS the last element",
+        "The loop variable must move TOWARD the exit condition",
+        "If condition is 'n > 0', then n must DECREASE each iteration"
+      ]
+    }
+  },
+  {
+    level: 3,
+    name: "Decisions",
+    icon: "⚖️",
+    tagline: "Comparisons, conditions & boolean logic",
+    conceptIntro: {
+      title: "Making Decisions in Code",
+      paragraphs: [
+        "Programs make decisions using 'if' statements and comparison operators. The direction of the operator matters: '>' means greater-than, '<' means less-than. Swapping them gives you the OPPOSITE result.",
+        "Boolean operators combine conditions: '&&' (AND) requires ALL conditions true; '||' (OR) requires ANY condition true. Mixing these up is one of the most common bugs in real-world software."
+      ],
+      keyPoints: [
+        "'>' finds maximum, '<' finds minimum — don't swap them!",
+        "'==' checks equality, '!=' checks inequality",
+        "'&&' (AND) = restrictive: both must be true",
+        "'||' (OR) = permissive: either can be true"
+      ]
+    }
+  },
+  {
+    level: 4,
+    name: "Data & Strings",
+    icon: "🔤",
+    tagline: "Text manipulation & accumulator patterns",
+    conceptIntro: {
+      title: "Working with Data",
+      paragraphs: [
+        "The accumulator pattern is a workhorse of programming: loop through data, building a result step by step. First you ACCUMULATE (add/multiply/concatenate inside a loop), then you REDUCE (compute the final answer after the loop).",
+        "String operations and the 'fence post problem' are common pitfalls. When joining N items with separators, you need N-1 separators — like a fence with posts and rails."
+      ],
+      keyPoints: [
+        "Average = sum ÷ count (divide AFTER the loop, not during)",
+        "String.length gives the number of characters",
+        "Joining N items needs N-1 separators between them",
+        "Always check: am I using the right operation (+ - * /)?"
+      ]
+    }
+  },
+  {
+    level: 5,
+    name: "Arrays & Nesting",
+    icon: "📦",
+    tagline: "Array indexing & nested loops",
+    conceptIntro: {
+      title: "Arrays & Complex Loops",
+      paragraphs: [
+        "Arrays are ordered lists where each element has an index starting from 0. The last valid index is always length-1. When computing indices with arithmetic (like reversing an array), always verify the first and last values stay in bounds.",
+        "Nested loops (a loop inside a loop) are used for 2D structures like grids. The inner and outer loop counters MUST stay independent — accidentally using the wrong variable is a classic mistake."
+      ],
+      keyPoints: [
+        "Array indices: 0 to length-1 (never length!)",
+        "Reverse mapping: position i → position (length-1-i)",
+        "Keep nested loop counters strictly separated",
+        "Conditional updates must be INSIDE the if-block, not outside"
+      ]
+    }
+  }
+];
+
 export const puzzles: Puzzle[] = [
   // ── Loop Errors ──
   {
@@ -75,6 +187,8 @@ export const puzzles: Puzzle[] = [
     description: "This code should sum ALL elements of an array. Step through and watch — does it actually add every number?",
     category: "Loop Errors",
     difficulty: "Easy",
+    level: 2,
+    levelOrder: 1,
     lines: [
       { code: "let arr = [10, 20, 30, 40, 50];", explanation: "Create an array with 5 numbers (indices 0-4)" },
       { code: "let sum = 0;", explanation: "Initialize our running total to 0" },
@@ -111,6 +225,8 @@ export const puzzles: Puzzle[] = [
     description: "This code should count down from 5 to 1. But watch what happens to the counter variable...",
     category: "Loop Errors",
     difficulty: "Medium",
+    level: 2,
+    levelOrder: 2,
     lines: [
       { code: "let n = 5;", explanation: "Start counting from 5" },
       { code: "let result = 0;", explanation: "Accumulate our result" },
@@ -148,6 +264,8 @@ export const puzzles: Puzzle[] = [
     description: "This code finds the MAXIMUM value. But watch the comparison — is it selecting the right numbers?",
     category: "Comparison Bugs",
     difficulty: "Easy",
+    level: 3,
+    levelOrder: 1,
     lines: [
       { code: "let nums = [3, 7, 2, 9, 5];", explanation: "Our array of numbers to search" },
       { code: "let max = nums[0];", explanation: "Assume the first element (3) is the max" },
@@ -177,6 +295,8 @@ export const puzzles: Puzzle[] = [
     description: "This code checks if a target number exists in an array. But the check is wrong...",
     category: "Comparison Bugs",
     difficulty: "Medium",
+    level: 3,
+    levelOrder: 2,
     lines: [
       { code: "let items = [5, 12, 8, 3, 20];", explanation: "Array to search through" },
       { code: "let target = 8;", explanation: "The number we're looking for" },
@@ -209,6 +329,8 @@ export const puzzles: Puzzle[] = [
     description: "This code counts even numbers. But the count starts wrong — watch the initial value carefully.",
     category: "Initialization",
     difficulty: "Easy",
+    level: 1,
+    levelOrder: 1,
     lines: [
       { code: "let data = [4, 7, 2, 9, 6, 1];", explanation: "Array with 3 even numbers: 4, 2, 6" },
       { code: "let count = 1;", isBugLine: true, explanation: "🔍 Count starts at 1 — but we haven't counted anything yet!" },
@@ -238,6 +360,8 @@ export const puzzles: Puzzle[] = [
     description: "This code computes the product of all numbers. But something is off with the starting value...",
     category: "Initialization",
     difficulty: "Medium",
+    level: 1,
+    levelOrder: 2,
     lines: [
       { code: "let vals = [2, 3, 4];", explanation: "Three numbers to multiply together" },
       { 
@@ -276,6 +400,8 @@ export const puzzles: Puzzle[] = [
     description: "This code should find the index of the smallest element. But the index updates unconditionally...",
     category: "Array Logic",
     difficulty: "Hard",
+    level: 5,
+    levelOrder: 1,
     lines: [
       { code: "let arr = [5, 1, 8, 3];", explanation: "Array to search — minimum is 1 at index 1" },
       { code: "let minIdx = 0;", explanation: "Assume first element is the minimum" },
@@ -310,6 +436,8 @@ export const puzzles: Puzzle[] = [
     description: "This code should reverse an array into a new array. Watch the index math carefully...",
     category: "Array Logic",
     difficulty: "Hard",
+    level: 5,
+    levelOrder: 2,
     lines: [
       { code: "let src = [1, 2, 3, 4];", explanation: "Source array to reverse" },
       { code: "let dest = [0, 0, 0, 0];", explanation: "Destination array (same size)" },
@@ -339,6 +467,8 @@ export const puzzles: Puzzle[] = [
     description: "This code computes an average but divides at the wrong time. Watch sum and count carefully.",
     category: "Accumulator Patterns",
     difficulty: "Medium",
+    level: 4,
+    levelOrder: 1,
     lines: [
       { code: "let grades = [80, 90, 70];", explanation: "Three test scores" },
       { code: "let sum = 0;", explanation: "Running total" },
@@ -370,6 +500,8 @@ export const puzzles: Puzzle[] = [
     description: "This code builds a string like '1-2-3-4' with dashes between numbers. But there's an extra dash...",
     category: "Boundary Conditions",
     difficulty: "Hard",
+    level: 4,
+    levelOrder: 3,
     lines: [
       { code: "let nums = [1, 2, 3, 4];", explanation: "Numbers to join with dashes" },
       { code: "let out = \"\";", explanation: "Start with empty string" },
@@ -400,6 +532,8 @@ export const puzzles: Puzzle[] = [
     description: "This code checks if a password is at least 8 characters long and has no spaces. Watch the boolean flags carefully.",
     category: "String Manipulation",
     difficulty: "Medium",
+    level: 4,
+    levelOrder: 2,
     lines: [
       { code: "let pwd = \"secret123\";", explanation: "The user's password" },
       { code: "let isValid = true;", explanation: "Assume valid initially" },
@@ -427,6 +561,8 @@ export const puzzles: Puzzle[] = [
     description: "A customer gets a discount if they are a VIP OR if it's their birthday. But nobody is getting the discount!",
     category: "Boolean Logic",
     difficulty: "Easy",
+    level: 3,
+    levelOrder: 3,
     lines: [
       { code: "let isVip = false;", explanation: "Not a VIP" },
       { code: "let isBirthday = true;", explanation: "But it is their birthday!" },
@@ -455,6 +591,8 @@ export const puzzles: Puzzle[] = [
     description: "This code tries to count the total number of cells in a 3x3 grid. But it double-counts something...",
     category: "Nested Loops",
     difficulty: "Hard",
+    level: 5,
+    levelOrder: 3,
     lines: [
       { code: "let width = 3;", explanation: "Grid width" },
       { code: "let height = 3;", explanation: "Grid height" },

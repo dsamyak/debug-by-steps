@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from "react";
-import { puzzles, executeLine } from "@/lib/puzzles";
+import { puzzles, levels, executeLine } from "@/lib/puzzles";
 import CodePanel from "./CodePanel";
 import MemoryWatch from "./MemoryWatch";
 import ExecutionLog, { ExecutionLogEntry } from "./ExecutionLog";
@@ -10,9 +10,10 @@ import { SkipForward, RotateCcw, Bug, Lightbulb, ChevronRight, Home, Eye, EyeOff
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
 
-type GamePhase = "welcome" | "stepping" | "quiz" | "identify" | "fix" | "verify" | "complete";
+type GamePhase = "welcome" | "concept" | "stepping" | "quiz" | "identify" | "fix" | "verify" | "complete";
 
 const STORAGE_KEY = "bughunter-completed";
+const SEEN_CONCEPTS_KEY = "bughunter-seen-concepts";
 
 function loadCompleted(): Set<string> {
   try {
@@ -23,6 +24,17 @@ function loadCompleted(): Set<string> {
 
 function saveCompleted(set: Set<string>) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify([...set]));
+}
+
+function loadSeenConcepts(): Set<number> {
+  try {
+    const saved = localStorage.getItem(SEEN_CONCEPTS_KEY);
+    return saved ? new Set(JSON.parse(saved)) : new Set();
+  } catch { return new Set(); }
+}
+
+function saveSeenConcepts(set: Set<number>) {
+  localStorage.setItem(SEEN_CONCEPTS_KEY, JSON.stringify([...set]));
 }
 
 const DebuggerGame = () => {
@@ -47,8 +59,10 @@ const DebuggerGame = () => {
   const [answeredQuizzes, setAnsweredQuizzes] = useState<Set<number>>(new Set());
   const [stateHistory, setStateHistory] = useState<any[]>([]);
   const [isAutoPlaying, setIsAutoPlaying] = useState(false);
+  const [seenConcepts, setSeenConcepts] = useState<Set<number>>(loadSeenConcepts);
 
   const puzzle = puzzles[puzzleIdx];
+  const currentLevel = levels.find(l => l.level === puzzle.level)!;
 
   const resetExecution = useCallback(() => {
     setCurrentLine(-1);
@@ -72,6 +86,10 @@ const DebuggerGame = () => {
   }, []);
 
   const selectPuzzle = useCallback((idx: number) => {
+    const targetPuzzle = puzzles[idx];
+    const level = targetPuzzle.level;
+    const hasSeenConcept = seenConcepts.has(level);
+
     setPuzzleIdx(idx);
     setCurrentLine(-1);
     setVariables({});
@@ -86,12 +104,12 @@ const DebuggerGame = () => {
     setMessage("");
     setExecutionLog([]);
     setWrongAttempts(0);
-    setPhase("stepping");
+    setPhase(hasSeenConcept ? "stepping" : "concept");
     setRightPanelTab("memory");
     setAnsweredQuizzes(new Set());
     setStateHistory([]);
     setIsAutoPlaying(false);
-  }, []);
+  }, [seenConcepts]);
 
   const stepForward = useCallback(() => {
     if (isDone) return;
@@ -250,9 +268,36 @@ const DebuggerGame = () => {
     }
   };
 
+  const handleConceptDone = () => {
+    const newSeen = new Set(seenConcepts);
+    newSeen.add(puzzle.level);
+    setSeenConcepts(newSeen);
+    saveSeenConcepts(newSeen);
+    setPhase("stepping");
+  };
+
   const nextPuzzle = () => {
-    const nextIdx = (puzzleIdx + 1) % puzzles.length;
-    selectPuzzle(nextIdx);
+    // Find next puzzle in same level first
+    const sameLevelPuzzles = puzzles
+      .map((p, i) => ({ puzzle: p, idx: i }))
+      .filter(x => x.puzzle.level === puzzle.level && x.puzzle.levelOrder > puzzle.levelOrder)
+      .sort((a, b) => a.puzzle.levelOrder - b.puzzle.levelOrder);
+    
+    if (sameLevelPuzzles.length > 0) {
+      selectPuzzle(sameLevelPuzzles[0].idx);
+    } else {
+      // Move to next level
+      const nextLevelPuzzles = puzzles
+        .map((p, i) => ({ puzzle: p, idx: i }))
+        .filter(x => x.puzzle.level === puzzle.level + 1)
+        .sort((a, b) => a.puzzle.levelOrder - b.puzzle.levelOrder);
+      
+      if (nextLevelPuzzles.length > 0) {
+        selectPuzzle(nextLevelPuzzles[0].idx);
+      } else {
+        setPhase("welcome");
+      }
+    }
   };
 
   const goHome = () => {
@@ -261,6 +306,53 @@ const DebuggerGame = () => {
 
   if (phase === "welcome") {
     return <WelcomeScreen onSelectPuzzle={selectPuzzle} completedPuzzles={completedPuzzles} />;
+  }
+
+  // Concept Lesson Phase
+  if (phase === "concept") {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col items-center justify-center p-6">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="max-w-xl w-full"
+        >
+          <div className="text-center mb-6">
+            <span className="text-4xl mb-3 block">{currentLevel.icon}</span>
+            <span className="text-[10px] font-mono font-bold text-primary uppercase tracking-widest">Level {currentLevel.level}</span>
+            <h2 className="text-2xl font-sans font-bold text-foreground mt-1">{currentLevel.name}</h2>
+            <p className="text-sm text-muted-foreground mt-1">{currentLevel.tagline}</p>
+          </div>
+
+          <div className="rounded-xl border border-accent/30 bg-card p-6 shadow-lg">
+            <div className="flex items-center gap-2 mb-4">
+              <BookOpen className="w-5 h-5 text-accent" />
+              <h3 className="font-sans font-bold text-foreground">{currentLevel.conceptIntro.title}</h3>
+            </div>
+            {currentLevel.conceptIntro.paragraphs.map((p: string, i: number) => (
+              <p key={i} className="text-sm text-foreground/80 leading-relaxed mb-3 last:mb-0">{p}</p>
+            ))}
+            <div className="mt-4 rounded-lg bg-accent/5 border border-accent/20 p-3 space-y-1.5">
+              <span className="text-[10px] font-mono font-bold text-accent uppercase tracking-wider">Key Points</span>
+              {currentLevel.conceptIntro.keyPoints.map((kp: string, i: number) => (
+                <div key={i} className="flex items-start gap-2">
+                  <span className="text-accent text-sm mt-0.5">✦</span>
+                  <span className="text-xs text-foreground/70 font-mono leading-relaxed">{kp}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="flex justify-center mt-6">
+            <Button onClick={handleConceptDone} className="gap-2 font-mono text-sm px-6">
+              I understand — let's debug!
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+        </motion.div>
+      </div>
+    );
   }
 
   return (
@@ -281,6 +373,9 @@ const DebuggerGame = () => {
           </div>
           <div className="flex items-center gap-3 text-sm font-mono">
             <Glossary />
+            <span className="text-[10px] font-mono font-semibold text-muted-foreground/70 bg-secondary/50 px-2 py-0.5 rounded">
+              Lvl {puzzle.level}.{puzzle.levelOrder}
+            </span>
             <span className={`px-2 py-0.5 rounded text-[10px] font-semibold ${
               puzzle.difficulty === "Easy" ? "bg-primary/20 text-primary" :
               puzzle.difficulty === "Medium" ? "bg-accent/20 text-accent" :
