@@ -8,6 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Bug, Lightbulb, ChevronRight, Home, BookOpen, Eye, EyeOff } from "lucide-react";
 import confetti from "canvas-confetti";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "./LanguageSelector";
 
 type GamePhase = "welcome" | "concept" | "read" | "identify" | "fix" | "complete";
 
@@ -60,6 +62,7 @@ function computeOutput(puzzle: typeof puzzles[0], fixed: boolean, fixedCode?: st
 }
 
 const DebuggerGame = () => {
+  const { t } = useTranslation();
   const [puzzleIdx, setPuzzleIdx] = useState(0);
   const [phase, setPhase] = useState<GamePhase>("welcome");
   const [showBug, setShowBug] = useState(false);
@@ -250,25 +253,26 @@ const DebuggerGame = () => {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="sm" onClick={goHome} className="gap-1.5 font-mono text-sm">
               <Home className="w-4 h-4" />
-              Menu
+              {t("common.menu")}
             </Button>
             <div className="h-5 w-px bg-border" />
             <Bug className="w-6 h-6 text-primary" />
             <h1 className="text-lg font-sans font-bold text-foreground tracking-tight hidden sm:block">
-              Bug Hunter
+              {t("common.title")}
             </h1>
           </div>
           <div className="flex items-center gap-3">
+            <LanguageSelector />
             <Glossary />
             <span className="text-xs font-mono font-semibold text-muted-foreground bg-secondary/50 px-2.5 py-1 rounded">
-              Lvl {puzzle.level}.{puzzle.levelOrder}
+              {t("debugger.level", { level: puzzle.level, order: puzzle.levelOrder })}
             </span>
             <span className={`px-2.5 py-1 rounded text-xs font-semibold ${
               puzzle.difficulty === "Easy" ? "bg-primary/20 text-primary" :
               puzzle.difficulty === "Medium" ? "bg-accent/20 text-accent" :
               "bg-destructive/20 text-destructive"
             }`}>
-              {puzzle.difficulty}
+              {t(`debugger.${puzzle.difficulty.toLowerCase()}`)}
             </span>
           </div>
         </div>
@@ -302,7 +306,7 @@ const DebuggerGame = () => {
               className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors font-mono"
             >
               {showExplanations ? <Eye className="w-4 h-4" /> : <EyeOff className="w-4 h-4" />}
-              {showExplanations ? "Hints on" : "Hints off"}
+              {showExplanations ? t("debugger.hints_on") : t("debugger.hints_off")}
             </button>
           </div>
           <div className="flex-1 py-4 overflow-auto">
@@ -322,14 +326,14 @@ const DebuggerGame = () => {
             <div className="border-t border-border px-5 py-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="rounded-lg border border-border bg-card p-3">
-                  <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">Expected</span>
+                  <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">{t("debugger.expected")}</span>
                   <p className="text-base font-mono font-semibold text-primary mt-1">{expectedOutput}</p>
                 </div>
                 <div className={`rounded-lg border p-3 ${
                   isFixed ? "border-primary/40 bg-primary/5" : "border-destructive/40 bg-destructive/5"
                 }`}>
                   <span className="text-[10px] font-mono uppercase text-muted-foreground tracking-wider">
-                    {isFixed ? "Fixed Output" : "Buggy Output"}
+                    {isFixed ? t("debugger.fixed_output") : t("debugger.buggy_output")}
                   </span>
                   <p className={`text-base font-mono font-semibold mt-1 ${isFixed ? "text-primary" : "text-destructive"}`}>
                     {isFixed ? computeOutput(puzzle, true, fixedCode) : buggyOutput}
@@ -344,24 +348,24 @@ const DebuggerGame = () => {
             {phase === "read" && (
               <Button onClick={handleReadDone} size="lg" className="gap-2 font-mono text-sm">
                 <Bug className="w-4 h-4" />
-                I've read the code — Find the Bug!
+                {t("debugger.read_code_btn")}
               </Button>
             )}
             {phase === "identify" && (
               <Button onClick={handleIdentifyBug} variant="destructive" size="lg" className="gap-2 font-mono text-sm">
                 <Bug className="w-4 h-4" />
-                Reveal Bug
+                {t("debugger.reveal_bug_btn")}
               </Button>
             )}
             {phase === "complete" && (
               <div className="flex gap-3">
                 <Button onClick={nextPuzzle} size="lg" className="gap-2 font-mono text-sm">
                   <ChevronRight className="w-4 h-4" />
-                  Next Puzzle
+                  {t("debugger.next_puzzle")}
                 </Button>
                 <Button onClick={goHome} variant="outline" size="lg" className="gap-2 font-mono text-sm">
                   <Home className="w-4 h-4" />
-                  All Puzzles
+                  {t("debugger.all_puzzles")}
                 </Button>
               </div>
             )}
@@ -391,10 +395,10 @@ const DebuggerGame = () => {
               ))}
             </div>
             <div className="flex justify-between mt-2 text-[10px] font-mono text-muted-foreground uppercase tracking-wider">
-              <span>Read</span>
-              <span>Find</span>
-              <span>Fix</span>
-              <span>Done</span>
+              <span>{t("debugger.phase_read")}</span>
+              <span>{t("debugger.phase_find")}</span>
+              <span>{t("debugger.phase_fix")}</span>
+              <span>{t("debugger.phase_done")}</span>
             </div>
           </div>
 
@@ -411,27 +415,25 @@ const DebuggerGame = () => {
               >
                 {phase === "read" && (
                   <>
-                    <h4 className="font-sans font-bold text-base text-foreground mb-2">📖 Step 1: Read the Code</h4>
+                    <h4 className="font-sans font-bold text-base text-foreground mb-2">{t("debugger.step1_title")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Read through the code carefully. Each line has a hint explaining what it does. 
-                      Think about what the code <strong>should</strong> produce vs what it <strong>actually</strong> does.
+                      {t("debugger.step1_desc")}
                     </p>
                   </>
                 )}
                 {phase === "identify" && (
                   <>
-                    <h4 className="font-sans font-bold text-base text-foreground mb-2">🔍 Step 2: Find the Bug</h4>
+                    <h4 className="font-sans font-bold text-base text-foreground mb-2">{t("debugger.step2_title")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed">
-                      Something is wrong with this code. Look at the expected vs actual output below the code.
-                      When you're ready, click "Reveal Bug" to see which line is faulty.
+                      {t("debugger.step2_desc")}
                     </p>
                   </>
                 )}
                 {phase === "fix" && (
                   <>
-                    <h4 className="font-sans font-bold text-base text-foreground mb-2">🔧 Step 3: Fix the Bug</h4>
+                    <h4 className="font-sans font-bold text-base text-foreground mb-2">{t("debugger.step3_title")}</h4>
                     <p className="text-sm text-muted-foreground leading-relaxed mb-3">
-                      The buggy line is highlighted in red. Choose the correct fix from the options below.
+                      {t("debugger.step3_desc")}
                     </p>
                     {/* Fix Options */}
                     <div className="space-y-2">
@@ -449,16 +451,16 @@ const DebuggerGame = () => {
                     </div>
                     {wrongAttempts > 0 && (
                       <p className="text-xs text-destructive font-mono mt-2">
-                        {wrongAttempts} wrong {wrongAttempts === 1 ? "try" : "tries"}
+                        {wrongAttempts === 1 ? t("debugger.wrong_tries", { count: wrongAttempts }) : t("debugger.wrong_tries_plural", { count: wrongAttempts })}
                       </p>
                     )}
                   </>
                 )}
                 {phase === "complete" && (
                   <>
-                    <h4 className="font-sans font-bold text-base text-primary mb-2">🎉 Bug Fixed!</h4>
+                    <h4 className="font-sans font-bold text-base text-primary mb-2">{t("debugger.bug_fixed")}</h4>
                     <p className="text-sm text-foreground/80 leading-relaxed">
-                      The code now produces the correct result.
+                      {t("debugger.bug_fixed_desc")}
                     </p>
                   </>
                 )}
@@ -473,7 +475,7 @@ const DebuggerGame = () => {
                 className="rounded-lg border border-primary/20 bg-primary/5 p-4"
               >
                 <div className="text-xs font-mono font-semibold text-primary uppercase mb-2">
-                  📚 What You Learned
+                  {t("debugger.what_learned")}
                 </div>
                 <p className="text-sm text-foreground/80 leading-relaxed">
                   {puzzle.lesson}
@@ -505,7 +507,7 @@ const DebuggerGame = () => {
                 className="flex items-center gap-2 text-sm text-muted-foreground hover:text-accent transition-colors font-mono"
               >
                 <Lightbulb className="w-4 h-4" />
-                {showHint ? puzzle.hint : "Need a hint?"}
+                {showHint ? puzzle.hint : t("debugger.need_hint")}
               </button>
             )}
           </div>

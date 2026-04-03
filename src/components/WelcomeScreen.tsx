@@ -3,6 +3,8 @@ import { Bug, BookOpen, Trophy, Lock, ChevronDown, ChevronUp, Sparkles, Graduati
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useTranslation } from "react-i18next";
+import { LanguageSelector } from "./LanguageSelector";
 
 interface WelcomeScreenProps {
   onSelectPuzzle: (idx: number) => void;
@@ -10,6 +12,7 @@ interface WelcomeScreenProps {
 }
 
 const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps) => {
+  const { t } = useTranslation();
   const [expandedLevel, setExpandedLevel] = useState<number | null>(null);
   const totalCompleted = completedPuzzles.size;
 
@@ -41,15 +44,19 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
     <div className="min-h-screen bg-gradient-to-br from-background via-background to-primary/5 flex flex-col">
       {/* Hero */}
       <div className="border-b border-border">
-        <div className="max-w-3xl mx-auto px-6 py-10 text-center">
+        {/* Top bar with Language Selector */}
+        <div className="flex justify-end p-4 max-w-5xl mx-auto">
+          <LanguageSelector />
+        </div>
+        <div className="max-w-3xl mx-auto px-6 py-6 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Bug className="w-9 h-9 text-primary" />
             <h1 className="text-4xl font-sans font-bold text-foreground tracking-tight">
-              Bug Hunter
+              {t("common.title")}
             </h1>
           </div>
           <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
-            Master debugging step by step. Learn each concept, then hunt the bugs.
+            {t("welcome.subtitle")}
           </p>
 
           {/* Progress */}
@@ -57,7 +64,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
             <div className="flex items-center gap-2 text-sm font-mono">
               <Trophy className="w-4 h-4 text-accent" />
               <span className="text-muted-foreground">
-                {totalCompleted}/{puzzles.length} solved
+                {t("welcome.solved", { completed: totalCompleted, total: puzzles.length })}
               </span>
             </div>
             <div className="h-2 w-40 rounded-full bg-secondary overflow-hidden">
@@ -71,10 +78,10 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
           {/* How it works */}
           <div className="mt-6 grid grid-cols-2 sm:grid-cols-4 gap-3 text-left">
             {[
-              { icon: "📖", title: "Learn", desc: "Read the concept lesson" },
-              { icon: "👣", title: "Step", desc: "Execute line by line" },
-              { icon: "🔍", title: "Spot", desc: "Find the bug" },
-              { icon: "🔧", title: "Fix", desc: "Choose the correct fix" },
+              { icon: "📖", title: t("welcome.learn_title"), desc: t("welcome.learn_desc") },
+              { icon: "👣", title: t("welcome.step_title"), desc: t("welcome.step_desc") },
+              { icon: "🔍", title: t("welcome.spot_title"), desc: t("welcome.spot_desc") },
+              { icon: "🔧", title: t("welcome.fix_title"), desc: t("welcome.fix_desc") },
             ].map(step => (
               <div key={step.title} className="rounded-lg border border-border bg-card p-3">
                 <div className="text-xl mb-1">{step.icon}</div>
@@ -90,7 +97,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
       <div className="max-w-3xl mx-auto px-6 py-8 w-full space-y-4">
         <div className="flex items-center gap-2 mb-2">
           <GraduationCap className="w-5 h-5 text-primary" />
-          <h2 className="text-lg font-sans font-bold text-foreground">Learning Path</h2>
+          <h2 className="text-lg font-sans font-bold text-foreground">{t("welcome.learning_path")}</h2>
         </div>
 
         {levels.map((levelInfo, levelIdx) => {
@@ -141,7 +148,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                       </span>
                       {complete && (
                         <span className="text-[9px] font-mono font-bold uppercase px-1.5 py-0.5 rounded bg-primary/20 text-primary">
-                          Complete
+                          {t("welcome.complete")}
                         </span>
                       )}
                     </div>
@@ -194,7 +201,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                           <div className="flex items-center gap-2 mb-2">
                             <BookOpen className="w-4 h-4 text-accent" />
                             <span className="text-xs font-mono font-bold text-accent uppercase tracking-wider">
-                              📖 Concept: {levelInfo.conceptIntro.title}
+                              📖 {t("welcome.concept", { title: levelInfo.conceptIntro.title })}
                             </span>
                           </div>
                           {levelInfo.conceptIntro.paragraphs.map((p, i) => (
@@ -203,7 +210,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                             </p>
                           ))}
                           <div className="mt-3 space-y-1">
-                            <span className="text-[10px] font-mono font-semibold text-accent uppercase">Key Points:</span>
+                            <span className="text-[10px] font-mono font-semibold text-accent uppercase">{t("welcome.key_points")}</span>
                             {levelInfo.conceptIntro.keyPoints.map((kp, i) => (
                               <div key={i} className="flex items-start gap-1.5">
                                 <span className="text-accent text-xs mt-0.5">•</span>
@@ -265,7 +272,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                 {!unlocked && (
                   <div className="px-5 pb-3">
                     <p className="text-[10px] text-muted-foreground/60 font-mono">
-                      🔒 Complete all puzzles in Level {levelInfo.level - 1} to unlock
+                      🔒 {t("welcome.locked_msg", { level: levelInfo.level - 1 })}
                     </p>
                   </div>
                 )}
