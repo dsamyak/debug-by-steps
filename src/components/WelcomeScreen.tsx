@@ -44,11 +44,11 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
         <div className="max-w-3xl mx-auto px-6 py-10 text-center">
           <div className="flex items-center justify-center gap-3 mb-3">
             <Bug className="w-9 h-9 text-primary" />
-            <h1 className="text-3xl font-sans font-bold text-foreground tracking-tight">
+            <h1 className="text-4xl font-sans font-bold text-foreground tracking-tight">
               Bug Hunter
             </h1>
           </div>
-          <p className="text-base text-muted-foreground max-w-xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-xl mx-auto leading-relaxed">
             Master debugging step by step. Learn each concept, then hunt the bugs.
           </p>
 
@@ -77,9 +77,9 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
               { icon: "🔧", title: "Fix", desc: "Choose the correct fix" },
             ].map(step => (
               <div key={step.title} className="rounded-lg border border-border bg-card p-3">
-                <div className="text-base mb-0.5">{step.icon}</div>
-                <div className="font-sans font-semibold text-foreground text-xs">{step.title}</div>
-                <div className="text-[10px] text-muted-foreground mt-0.5">{step.desc}</div>
+                <div className="text-xl mb-1">{step.icon}</div>
+                <div className="font-sans font-semibold text-foreground text-sm">{step.title}</div>
+                <div className="text-xs text-muted-foreground mt-0.5">{step.desc}</div>
               </div>
             ))}
           </div>
@@ -145,10 +145,10 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                         </span>
                       )}
                     </div>
-                    <h3 className={`font-sans font-semibold text-sm mt-0.5 ${unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
+                    <h3 className={`font-sans font-semibold text-base mt-0.5 ${unlocked ? 'text-foreground' : 'text-muted-foreground'}`}>
                       {levelInfo.name}
                     </h3>
-                    <p className="text-[11px] text-muted-foreground mt-0.5">{levelInfo.tagline}</p>
+                    <p className="text-sm text-muted-foreground mt-0.5">{levelInfo.tagline}</p>
                   </div>
 
                   {/* Progress + Chevron */}
@@ -235,7 +235,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                                     <span className="text-xs font-mono text-muted-foreground/60">
                                       {levelInfo.level}.{puzzle.levelOrder}
                                     </span>
-                                    <span className={`font-sans font-semibold text-sm ${isCompleted ? 'text-primary' : 'text-foreground'}`}>
+                                    <span className={`font-sans font-semibold text-base ${isCompleted ? 'text-primary' : 'text-foreground'}`}>
                                       {isCompleted && "✨ "}{puzzle.title}
                                     </span>
                                   </div>
@@ -247,7 +247,7 @@ const WelcomeScreen = ({ onSelectPuzzle, completedPuzzles }: WelcomeScreenProps)
                                     {puzzle.difficulty}
                                   </span>
                                 </div>
-                                <p className="text-xs text-muted-foreground line-clamp-1 leading-relaxed">{puzzle.description}</p>
+                                <p className="text-sm text-muted-foreground line-clamp-1 leading-relaxed">{puzzle.description}</p>
                                 <div className="mt-2 flex items-center gap-1.5 opacity-70">
                                   <BookOpen className="w-3 h-3 text-muted-foreground" />
                                   <span className="text-[10px] font-mono text-muted-foreground">{puzzle.concept}</span>
